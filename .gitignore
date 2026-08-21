@@ -1,5 +1,29 @@
+# dependencies
 node_modules/
-.next/
+
+# build output
 dist/
-build/
+*.tsbuildinfo
+
+# environment — never commit secrets
+.env
+.env.local
+.env.*.local
+example.env.bak
+
+# logs
 *.log
+npm-debug.log*
+
+# editors / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# test / cache
+coverage/
+.vite/
+.eslintcache
+.next/
+build/
