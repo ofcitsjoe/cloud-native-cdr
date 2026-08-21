@@ -1,1 +1,217 @@
 @import "tailwindcss";
+
+@theme {
+  --color-base: #0a0d10;
+  --color-abyss: #07090b;
+  --color-panel: #0e1318;
+  --color-panel2: #121920;
+  --color-panel3: #171f28;
+  --color-edge: #1c2630;
+  --color-edge2: #2a3642;
+  --color-ink: #e9eef2;
+  --color-mut: #8fa0ae;
+  --color-dim: #5d6c79;
+  --color-sig: #2fd6b5;
+  --color-crit: #ff5d55;
+  --color-high: #ff9838;
+  --color-med: #ffce5c;
+  --color-low: #5cb8ff;
+
+  --font-disp: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(47, 214, 181, 0.28);
+  color: #eafffa;
+}
+
+/* ---------- scrollbars ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3642 transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #2a3642; border-radius: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- ambient layered background ---------- */
+.gridbg {
+  background-image:
+    linear-gradient(rgba(140, 165, 185, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 165, 185, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.gridbg-fine {
+  background-image:
+    linear-gradient(rgba(140, 165, 185, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 165, 185, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.vignette {
+  background:
+    radial-gradient(1200px 600px at 78% -10%, rgba(47, 214, 181, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 8% 108%, rgba(92, 184, 255, 0.05), transparent 60%);
+}
+
+/* ---------- reusable surfaces ---------- */
+.panel {
+  background: linear-gradient(180deg, rgba(23, 31, 40, 0.6), rgba(14, 19, 24, 0.9));
+  border: 1px solid var(--color-edge);
+}
+.lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+/* ---------- reveal on scroll ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- keyframes ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-fade-up { animation: fadeUp 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes dashFlow {
+  to { stroke-dashoffset: -26; }
+}
+.flow-dash {
+  stroke-dasharray: 5 8;
+  animation: dashFlow 1.1s linear infinite;
+}
+.flow-dash-slow {
+  stroke-dasharray: 3 9;
+  animation: dashFlow 2.4s linear infinite;
+}
+
+@keyframes pingDot {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  80% { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.ping-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pingDot 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.radar-sweep {
+  transform-origin: center;
+  animation: sweep 5.2s linear infinite;
+}
+
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marqueeX 36s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+@keyframes blinkRec {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+.blink-rec { animation: blinkRec 1.4s ease-in-out infinite; }
+
+@keyframes tickerRow {
+  0% { opacity: 0; transform: translateY(-8px); }
+  8%, 92% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -450px 0; }
+  100% { background-position: 450px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #121920 25%, #1a232d 50%, #121920 75%);
+  background-size: 900px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes caretPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.caret { animation: caretPulse 0.9s step-end infinite; }
+
+@keyframes slideInRight {
+  from { transform: translateX(28px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.toast-in { animation: slideInRight 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes drawerIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.drawer-in { animation: drawerIn 0.32s cubic-bezier(0.25, 0.8, 0.25, 1) both; }
+
+@keyframes modalIn {
+  from { transform: translateY(14px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.modal-in { animation: modalIn 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes scanline {
+  0% { top: -12%; }
+  100% { top: 112%; }
+}
+.scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: linear-gradient(180deg, transparent, rgba(47, 214, 181, 0.06), transparent);
+  animation: scanline 7s linear infinite;
+  pointer-events: none;
+}
+
+/* ---------- charts ---------- */
+.chart-line {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.3, 0.6, 0.2, 1) 0.15s;
+}
+.reveal.on .chart-line, .chart-on .chart-line { stroke-dashoffset: 0; }
+
+.bar-grow {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.9s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s;
+}
+.reveal.on .bar-grow, .chart-on .bar-grow { transform: scaleX(1); }
