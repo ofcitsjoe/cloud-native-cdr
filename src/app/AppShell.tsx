@@ -41,7 +41,7 @@ const VIEW_META: Record<View, { title: string; desc: string }> = {
 };
 
 export default function AppShell({ children, onExit }: { children: React.ReactNode; onExit: () => void }) {
-  const { view, go, setQuery, setAnalystOpen, alerts, incidents, apiConnected } = useStore();
+  const { view, go, setQuery, setAnalystOpen, alerts, incidents, apiConnected, dataSource } = useStore();
   const [q, setQ] = useState("");
   const now = useNow(1000);
   const meta = VIEW_META[view];
@@ -118,7 +118,7 @@ export default function AppShell({ children, onExit }: { children: React.ReactNo
           {apiConnected ? (
             <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-sig border border-sig/30 bg-sig/8 rounded-sm px-2.5 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-sig blink-rec" />
-              Live · PostgreSQL
+              {dataSource === "cdr" ? "Live · Sentinel-X Engine" : "Live · PostgreSQL"}
             </span>
           ) : (
             <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-med border border-med/30 bg-med/8 rounded-sm px-2.5 py-1.5">

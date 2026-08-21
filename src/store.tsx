@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { connectApi, persistAction } from "./api/client";
+import { connectApi, persistAction, DataSource } from "./api/client";
 import {
   ALERTS, INCIDENTS, RULES, RESPONSE_LOG_SEED, RECOMMENDED_ACTIONS,
   Alert, Incident, RuleDef,
@@ -36,6 +36,7 @@ interface Store {
   query: string;
   setQuery: (s: string) => void;
   apiConnected: boolean;
+  dataSource: DataSource;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -58,6 +59,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [analystOpen, setAnalystOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [apiConnected, setApiConnected] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSource>("simulated");
   const idRef = useRef(1);
 
   const dismissToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
@@ -81,10 +83,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     connectApi().then((data) => {
       if (cancelled || !data) return;
       setApiConnected(true);
+      setDataSource(data.source);
       if (data.alerts?.length) setAlerts(data.alerts);
       if (data.incidents?.length) setIncidents(data.incidents);
       if (data.rules?.length) setRules(data.rules);
-      toast("Live API connected — serving data from PostgreSQL", "ok");
+      const label =
+        data.source === "cdr" ? "Live — Sentinel-X detection engine (FastAPI)" :
+        data.source === "postgres" ? "Live — PostgreSQL" : "Simulated";
+      toast(`${label} · serving live data`, "ok");
     });
     return () => { cancelled = true; };
   }, [toast]);
@@ -167,7 +173,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toasts, toast, dismissToast,
     analystOpen, setAnalystOpen,
     query, setQuery,
-    apiConnected,
+    apiConnected, dataSource,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
