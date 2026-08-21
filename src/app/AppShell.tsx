@@ -41,7 +41,7 @@ const VIEW_META: Record<View, { title: string; desc: string }> = {
 };
 
 export default function AppShell({ children, onExit }: { children: React.ReactNode; onExit: () => void }) {
-  const { view, go, setQuery, setAnalystOpen, alerts, incidents } = useStore();
+  const { view, go, setQuery, setAnalystOpen, alerts, incidents, apiConnected } = useStore();
   const [q, setQ] = useState("");
   const now = useNow(1000);
   const meta = VIEW_META[view];
@@ -115,10 +115,17 @@ export default function AppShell({ children, onExit }: { children: React.ReactNo
             />
             <kbd className="font-mono text-[9px] text-dim border border-edge2 rounded-sm px-1">↵</kbd>
           </div>
-          <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-med border border-med/30 bg-med/8 rounded-sm px-2.5 py-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-med blink-rec" />
-            Simulated telemetry
-          </span>
+          {apiConnected ? (
+            <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-sig border border-sig/30 bg-sig/8 rounded-sm px-2.5 py-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-sig blink-rec" />
+              Live · PostgreSQL
+            </span>
+          ) : (
+            <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-med border border-med/30 bg-med/8 rounded-sm px-2.5 py-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-med blink-rec" />
+              Simulated telemetry
+            </span>
+          )}
           <span className="hidden sm:block font-mono text-[11px] text-dim tabular-nums">{new Date(now).toISOString().slice(11, 19)}Z</span>
           <button
             onClick={() => setAnalystOpen(true)}

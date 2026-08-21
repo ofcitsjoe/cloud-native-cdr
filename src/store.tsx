@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { connectApi, persistAction } from "./api/client";
 import {
   ALERTS, INCIDENTS, RULES, RESPONSE_LOG_SEED, RECOMMENDED_ACTIONS,
   Alert, Incident, RuleDef,
@@ -34,6 +35,7 @@ interface Store {
   setAnalystOpen: (b: boolean) => void;
   query: string;
   setQuery: (s: string) => void;
+  apiConnected: boolean;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -55,6 +57,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [analystOpen, setAnalystOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [apiConnected, setApiConnected] = useState(false);
   const idRef = useRef(1);
 
   const dismissToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
@@ -70,6 +73,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setFocus(f ?? {});
     window.scrollTo({ top: 0 });
   }, []);
+
+  // Live mode: if a backend is reachable (VITE_API_URL), prefer persisted
+  // PostgreSQL data; otherwise keep the simulated dataset. Demo build never breaks.
+  useEffect(() => {
+    let cancelled = false;
+    connectApi().then((data) => {
+      if (cancelled || !data) return;
+      setApiConnected(true);
+      if (data.alerts?.length) setAlerts(data.alerts);
+      if (data.incidents?.length) setIncidents(data.incidents);
+      if (data.rules?.length) setRules(data.rules);
+      toast("Live API connected — serving data from PostgreSQL", "ok");
+    });
+    return () => { cancelled = true; };
+  }, [toast]);
 
   const updateAlert = useCallback((id: string, patch: Partial<Alert>) => {
     setAlerts((a) => a.map((x) => (x.id === id ? { ...x, ...patch } : x)));
@@ -110,6 +128,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setExecuted((e) => (e.includes(id) ? e : [...e, id]));
     setLog((l) => [{ id: `log-${Date.now()}`, ts: Date.now(), action: def.label, target: def.target, status: "EXECUTED", by }, ...l]);
 
+    if (apiConnected) {
+      // Persist to the append-only audit log server-side (fire-and-forget).
+      void persistAction({
+        actionId: id, label: def.label, target: def.target, risk: def.risk,
+        incidentId: def.incidentId, confirmed: true,
+        reason: `${def.label} on ${def.target} — approved via response center`,
+      });
+    }
+
     if (def.id === "act-verify-fp") {
       setAlerts((a) => a.map((x) => (x.id === "AL-3098" ? { ...x, status: "FALSE_POSITIVE" } : x)));
       toast("Alert marked as false positive", "info");
@@ -125,11 +152,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return { ...x, status: "CONTAINED", timeline: [...x.timeline, { ts: Date.now(), label: `${def.label} — ${def.target}`, detail: `Executed by ${by} via response center.`, kind: "action" as const }] };
       })
     );
-    const incident = INCIDENTS.find((x) => x.id === def.incidentId);
+    const incident = incidents.find((x) => x.id === def.incidentId);
     if (incident) {
       setAlerts((a) => a.map((al) => (incident.resourceIds.includes(al.resourceId) && al.status === "ACTIVE" ? { ...al, status: "CONTAINED" } : al)));
     }
-  }, [toast]);
+  }, [toast, apiConnected, incidents]);
 
   const value: Store = {
     view, focus, go,
@@ -140,6 +167,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toasts, toast, dismissToast,
     analystOpen, setAnalystOpen,
     query, setQuery,
+    apiConnected,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
