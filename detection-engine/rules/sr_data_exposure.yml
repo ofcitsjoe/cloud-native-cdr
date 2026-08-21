@@ -1,0 +1,10 @@
+name: S3 Bucket Public Access Block Removed
+description: Detects modifications that allow an S3 bucket to become publicly accessible.
+severity: HIGH
+priority: 80
+event_source: aws.s3
+target_actions:
+  - DeleteBucketPublicAccessBlock
+  - PutBucketPublicAccessBlock
+  - PutBucketAcl
+risk_score: 75

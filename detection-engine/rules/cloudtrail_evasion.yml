@@ -1,0 +1,10 @@
+name: CloudTrail Logging Disabled (Defense Evasion)
+description: Detects attempts to stop, delete, or tamper with AWS CloudTrail logging.
+severity: CRITICAL
+priority: 95
+event_source: aws.cloudtrail
+target_actions:
+  - StopLogging
+  - DeleteTrail
+  - UpdateTrail
+risk_score: 100

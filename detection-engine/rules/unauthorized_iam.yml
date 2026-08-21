@@ -1,0 +1,10 @@
+name: Unauthorized IAM Activity (General)
+description: Detects general unauthorized IAM modifications.
+severity: HIGH
+priority: 10
+event_source: aws.iam
+target_actions:
+  - CreateUser
+  - DeleteUser
+  - PutUserPolicy
+risk_score: 50

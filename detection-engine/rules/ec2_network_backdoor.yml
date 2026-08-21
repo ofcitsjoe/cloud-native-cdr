@@ -1,0 +1,9 @@
+name: EC2 Security Group Ingress Modified
+description: Detects unauthorized changes to VPC Security Groups, potentially opening backdoors (e.g., SSH/RDP to the world).
+severity: HIGH
+priority: 70
+event_source: aws.ec2
+target_actions:
+  - AuthorizeSecurityGroupIngress
+  - RevokeSecurityGroupEgress
+risk_score: 85
