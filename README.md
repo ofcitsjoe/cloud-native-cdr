@@ -1,156 +1,153 @@
-# SENTINEL-X
+# SENTINEL-X · Cloud-Native Intrusion Detection & Response (CN-IDR)
 
-**Cloud-Native Intrusion Detection & Response.**
-A security operations platform that monitors cloud workloads, detects anomalous
-behavior, correlates events into attack paths, and guides — or automates —
-containment before a threat spreads.
+[![Version](https://img.shields.io/badge/version-2.0.0--ai--ml-2FD6B5.svg)](https://github.com/ofcitsjoe/cloud-native-cdr)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Design Inspiration](https://img.shields.io/badge/design-SSTR--inspired-121920.svg)](https://sstr.tech/en/)
 
-```
-Visibility → Detection → Investigation → Decision → Response
-```
-
-Two faces, one codebase:
-
-- **Product site** — story-driven presentation of the platform (threat → visibility →
-  detection → investigation → response → evidence), interactive infrastructure
-  diagrams and a case study.
-- **Operations console** — an 8-view SOC platform: Overview, Threats, Incidents,
-  Attack Paths, Event Explorer, Infrastructure, Response Center and Detection Rules,
-  plus an AI security analyst grounded in console telemetry.
-
-Runs fully standalone on a realistic **simulated telemetry dataset** — and switches to a
-**live PostgreSQL-backed REST API** the moment a backend is reachable.
-
----
-
-## Stack
-
-| Layer     | Technology                                        |
-|-----------|---------------------------------------------------|
-| Frontend  | React 18 · TypeScript · Vite · Tailwind CSS v4     |
-| Backend   | Node.js · Express · zod · JWT · bcryptjs           |
-| Database  | PostgreSQL 16 (parameterized queries only)         |
-| Detection | Server-side rule engine (windowed SQL evaluation)  |
-
-## Repository layout
+> **Next-Generation Cloud-Native Detection and Response (CDR)** featuring a dual AI/ML threat engine (Novel Zero-Day Attack Vectorizer & 3-Sigma Behavioral Traffic Flow Baselines), grounded AI Security Analyst Copilot, automated multi-cloud containment, and an editorial SSTR-inspired SOC operations console.
 
 ```
-├── index.html                  # entry — fonts, meta, product title
-├── src/
-│   ├── App.tsx                 # mode switch: product site ↔ console
-│   ├── store.tsx               # state, workflows, response engine, live-API fallback
-│   ├── api/client.ts           # REST client (login, bootstrap, actions, detect)
-│   ├── data/securityData.ts    # typed simulated telemetry model (demo mode)
-│   ├── components/             # icons, UI kit, SVG charts, AI analyst, confirmations
-│   ├── landing/                # product site sections
-│   ├── app/AppShell.tsx        # sidebar, topbar, command palette search
-│   └── views/                  # Dashboard · Threats · Incidents · AttackPath ·
-│                               # Events · Infrastructure · Response · Rules
-└── server/
-    ├── index.js                # REST API — auth, validation, rate limits, audit log
-    ├── schema.sql              # PostgreSQL schema
-    ├── seed.js                 # schema + dataset + demo analyst seeder
-    ├── detect.js               # detection engine (rule evaluation)
-    └── ingest-cloudtrail.js    # production data-path example (AWS → SQS → events)
+Visibility → Detection → ML Vectorization → Investigation → Decision → Automated Response
 ```
 
 ---
 
-## Quick start — demo mode (no backend needed)
+## 🚀 Version Evolution: v1.0 vs v2.0
 
-```bash
+| Feature Area | v1.0 (Legacy Baseline) | v2.0 (Current AI & Behavioral Release) |
+| :--- | :--- | :--- |
+| **Detection Approach** | Static threshold rules & YAML definitions | **Dual AI/ML Engines**: Multi-Tactic TTP Sequence Vectorizer + 3-Sigma Sinusoidal Flow Baselines |
+| **Zero-Day / Novel Threats** | Not supported (relied on known signatures) | **Novel Mutation Scoring (0–100)** with auto-synthesized Sigma rules & predictive blast radius |
+| **Network Traffic Analysis** | Basic egress filtering | **24h Dynamic Confidence Bands ($\mu \pm 3\sigma$)**, FFT C2 beaconing jitter detector & Shannon entropy |
+| **AI Analyst / Copilot** | None | **Grounded RAG AI Analyst** generating executable `kubectl`, `aws cli`, and `terraform` playbooks |
+| **Console & Visual Design** | Standard dashboard | **SSTR-inspired editorial UI** with interactive topology radar, SVG confidence charts, and dark abyss palettes |
+| **Attack Simulation** | Manual script execution | **Live Terminal Attack Simulator (`npm run attack`)** that pushes real-time alerts to the browser |
+| **Backend Architecture** | Python FastAPI / Postgres dependency | **Dual-Mode Express API**: Enterprise PostgreSQL + Zero-Setup Standalone In-Memory fallback |
+
+---
+
+## 🛠️ System Architecture
+
+```
+                                  [Cloud Telemetry Sources]
+                 (AWS CloudTrail · VPC Flow Logs · Kubernetes Audit · Okta Identity)
+                                             │
+                                             ▼
+                 ┌────────────────────────────────────────────────────────┐
+                 │           SENTINEL-X 2.0 Ingestion & ML Engine         │
+                 ├───────────────────────────┬────────────────────────────┤
+                 │ 1. AI Sequence Vectorizer │ 2. 3-Sigma Flow Engine     │
+                 │    - Multi-stage TTP math │    - Diurnal moving curves │
+                 │    - Novelty score (0-100)│    - C2 beaconing & jitter │
+                 │    - Sigma rule generator │    - Shannon entropy check │
+                 └───────────────────────────┴────────────────────────────┘
+                                             │
+                                             ▼
+                 ┌────────────────────────────────────────────────────────┐
+                 │             SOC Operations Console (SSTR UI)           │
+                 ├───────────────────────────┬────────────────────────────┤
+                 │ • Novel Threat Matrix     │ • AI Security Analyst      │
+                 │ • Traffic Flow Explorer   │ • Attack Path Graph        │
+                 │ • Incident Timeline       │ • 1-Click Containment      │
+                 └───────────────────────────┴────────────────────────────┘
+                                             │
+                                             ▼
+                 [Automated Containment: Calico NetworkPolicy · AWS IAM Revoke · Security Groups]
+```
+
+---
+
+## 📂 Repository Layout
+
+```
+├── src/                               # SENTINEL-X 2.0 Frontend Console & Models
+│   ├── App.tsx                        # Mode switch: Marketing site ↔ SOC Console
+│   ├── store.tsx                      # Global state, live 2.5s telemetry sync & alerts
+│   ├── api/client.ts                  # Unified API client (FastAPI, Express, & In-Memory)
+│   ├── data/
+│   │   ├── mlData.ts                  # Novel attack chains, 24h baseline profiles, beaconing
+│   │   └── securityData.ts            # Typed telemetry models, alerts, and incident graphs
+│   ├── components/                    # SVG charts, BaselineFlowChart, NoveltyMutationGauge, Analyst
+│   ├── landing/Landing.tsx            # SSTR-inspired product narrative with topology radar
+│   └── views/                         # NovelThreats · TrafficAnomaly · Threats · Incidents · 
+│                                      # Infrastructure · AttackPath · Response · Rules · Events
+├── server/                            # SENTINEL-X 2.0 Dual-Mode Backend API
+│   ├── index.js                       # Express REST API (Auth, ML endpoints, attack ingestion)
+│   ├── ml-engine.js                   # Sequence vectorizer, baseline calculator, AI Copilot
+│   ├── detect.js                      # SQL windowed rule evaluator
+│   └── seed.js                        # PostgreSQL schema & dataset seeder
+├── scripts/                           # Testing & Live Simulation Tools
+│   ├── cli-test.js                    # Interactive terminal CLI (chat with AI Analyst & test ML)
+│   └── simulate-attack.js             # Live attack simulator (pushes unauthorized actions to UI)
+├── detection-engine/                  # v1.0 Python FastAPI Detection Engine
+├── response-playbooks/                # v1.0 AWS Lambda Containment Scripts (Python)
+├── infrastructure/                    # Terraform Telemetry & IAM Infrastructure
+└── dashboard/                         # v1.0 Legacy React Dashboard
+```
+
+---
+
+## ⚡ Quick Start (v2.0)
+
+### 1. Install Dependencies
+```powershell
 npm install
-npm run dev          # http://localhost:5173
 ```
 
-Everything runs on the simulated dataset. No database, no secrets, no API keys.
-The console top bar shows an amber **"Simulated telemetry"** badge.
+### 2. Start the Frontend Console
+```powershell
+npm run dev
+```
+Open **`http://localhost:5173`** in your browser.
 
-## Full-stack mode — real, persisted data
+### 3. Start the Backend ML Server (Optional / Recommended)
+In a second terminal:
+```powershell
+npm run server
+```
+*The server starts on port `8080` in Standalone In-Memory mode (or PostgreSQL mode if `DATABASE_URL` is set).*
 
-```bash
-# 1. PostgreSQL (any install works; Docker shown)
-docker run --name sentinelx-pg \
-  -e POSTGRES_PASSWORD=sentinel -e POSTGRES_DB=sentinelx \
-  -p 5432:5432 -d postgres:16
+---
 
-# 2. Schema + data
-DATABASE_URL=postgres://postgres:sentinel@localhost:5432/sentinelx node server/seed.js
+## 🧪 Interactive Testing & Terminal Simulations
 
-# 3. API  (port 8080)
-DATABASE_URL=postgres://postgres:sentinel@localhost:5432/sentinelx \
-JWT_SECRET=change-me node server/index.js
+### Option A: Launch a Live Attack from Your Terminal
+Watch live alerts and incident correlation appear on the web dashboard in real time:
+```powershell
+npm run attack
+```
+Select a scenario (e.g. *Unauthorized IAM Privilege Escalation*, *S3 Data Exfiltration*, or *Kubernetes Secrets Theft*) and watch the red alert banner pop up on the website!
 
-# 4. Frontend wired to the API
-VITE_API_URL=http://localhost:8080 npm run dev
+### Option B: Interactive AI Analyst & ML CLI
+Chat with the AI Security Analyst and test custom attack sequence vectors:
+```powershell
+npm run cli
 ```
 
-The badge flips to teal **"Live · PostgreSQL"**, the console signs in automatically,
-and containment actions / rule changes persist server-side. If the API is ever
-unreachable, the app falls back to simulated data without breaking.
+### Option C: Direct PowerShell Commands
+```powershell
+# Ask the AI Analyst:
+Invoke-RestMethod -Uri "http://localhost:8080/api/ai/copilot" `
+  -Method POST -ContentType "application/json" `
+  -Body '{"query": "Why is checkout-api traffic anomalous?"}' | ConvertTo-Json -Depth 4
 
-**Console login:** `analyst@sentinel-x.local` / `sentinel-demo`
-
-## Environment variables
-
-| Variable                | Purpose                                   | Default              |
-|-------------------------|-------------------------------------------|----------------------|
-| `VITE_API_URL`          | Frontend → API base URL (enables live mode) | —                  |
-| `DATABASE_URL`          | PostgreSQL connection string               | —                   |
-| `JWT_SECRET`            | Token signing secret                       | —                   |
-| `JWT_EXPIRES_IN`        | Session lifetime                           | `12h`               |
-| `PORT`                  | API port                                   | `8080`              |
-| `CLIENT_ORIGIN`         | CORS allow-list                            | `http://localhost:5173` |
-| `RATE_WINDOW_MS` / `RATE_MAX` | Global rate limit                  | `60000` / `120`     |
-
-## API surface
-
-| Endpoint                  | Notes                                                    |
-|---------------------------|----------------------------------------------------------|
-| `POST /api/auth/login`    | bcrypt-verified, tightened rate limit → JWT              |
-| `GET  /api/bootstrap`     | alerts + incidents + rules + resources (console hydration) |
-| `GET  /api/events`        | `sev`, `type`, `q`, `from`, `to`, `page` filters          |
-| `GET /api/alerts` · `PATCH /api/alerts/:id` | status workflow                        |
-| `GET/POST/PATCH /api/rules` · `POST /api/rules/:id/test` | rule lifecycle |
-| `POST /api/actions/execute` | dangerous actions require confirmation + reason; transactional; audited |
-| `GET /api/audit`          | append-only action log                                    |
-| `POST /api/detect/run`    | trigger a detection pass                                  |
-
-## Data flow (production path)
-
-```
-CloudTrail / Defender / SCC        Kubernetes audit logs
-        │ (S3 → EventBridge → SQS)         │
-        ▼                                  ▼
-   ingest worker ────────────►  events table (normalized)
-                                     │
-                               detect.js (rules + thresholds)
-                                     │
-                                alerts table ──► console
-                                     │
-                       response engine ──► provider APIs (AWS/Azure/GCP SDK)
-                                     │
-                              audit_log (append-only)
+# Test a custom MITRE sequence with the ML Vectorizer:
+Invoke-RestMethod -Uri "http://localhost:8080/api/ml/novel-attacks/analyze" `
+  -Method POST -ContentType "application/json" `
+  -Body '{"actions": ["T1078 Valid Cloud Accounts", "STS AssumeRole", "Micro-session token rotation", "Distributed S3 egress"]}' | ConvertTo-Json -Depth 4
 ```
 
-`server/ingest-cloudtrail.js` contains the working normalizer; Azure/GCP/K8s map to
-the same `events` shape, after which detection, rules and the console work unchanged.
+---
 
-## Security practices
+## 🛡️ Response Playbooks & Containment
 
-- Parameterized SQL everywhere; no string-built queries
-- Passwords bcrypt-hashed; secrets only in env vars (never committed)
-- Helmet, CORS allow-list, global + per-route rate limiting, zod input validation
-- Least-privilege IAM sketches for ingest; destructive actions require explicit
-  analyst confirmation with reason, executed transactionally, and audited
-- No client-side secrets; audit trail is append-only
+SENTINEL-X generates and executes verified containment actions:
+- **Kubernetes Pod Isolation**: Applies Calico default-deny `NetworkPolicy` to cut ingress/egress while preserving memory for digital forensics.
+- **IAM Session Revocation**: Attaches an explicit `DenyAll` inline policy to attacker credentials and terminates active STS tokens.
+- **VPC Border Blocking**: Automatically adds egress deny rules to AWS Security Groups and Network ACLs.
 
-## Deployment
+---
 
-- **Frontend:** any static host (Vercel, Netlify, `npx serve dist`) — set `VITE_API_URL`
-  to your deployed API.
-- **API + DB:** Railway / Render / Fly.io — point `DATABASE_URL` at managed Postgres
-  and set `JWT_SECRET` + `CLIENT_ORIGIN`.
+## 📜 License
 
-> **Note:** all bundled telemetry is synthetic and internally consistent, clearly
-> labeled in the UI. No real cloud account is accessed anywhere in this codebase.
+MIT License. Designed and engineered for Cloud-Native Intrusion Detection & Response.
