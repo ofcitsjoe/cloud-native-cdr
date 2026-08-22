@@ -1,0 +1,6 @@
+# detection-engine/requirements.txt
+boto3
+fastapi
+uvicorn
+pydantic
+pyyaml

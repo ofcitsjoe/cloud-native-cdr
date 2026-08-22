@@ -6,7 +6,8 @@ export type IconName =
   | "chevronDown" | "chevronRight" | "chevronLeft" | "arrowRight" | "arrowUpRight" | "clock"
   | "globe" | "cpu" | "layers" | "terminal" | "zap" | "target" | "eye" | "activity"
   | "gitBranch" | "lock" | "ban" | "play" | "sparkle" | "send" | "fileText" | "crosshair"
-  | "list" | "grid" | "radio" | "siren" | "route" | "settings" | "external";
+  | "list" | "grid" | "radio" | "siren" | "route" | "settings" | "external"
+  | "brain" | "waveform" | "gitMerge" | "shieldCheck" | "shieldAlert";
 
 const P: Record<IconName, React.ReactNode> = {
   shield: <path d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6l8-3.5Z" />,
@@ -54,6 +55,11 @@ const P: Record<IconName, React.ReactNode> = {
   route: <><circle cx="6" cy="19" r="2.2" /><circle cx="18" cy="5" r="2.2" /><path d="M8.2 19H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.8" /></>,
   settings: <><circle cx="12" cy="12" r="3" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7" /></>,
   external: <><path d="M14 4h6v6" /><path d="M20 4 10.5 13.5" /><path d="M19 14v5.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-11A1.5 1.5 0 0 1 6.5 7H12" /></>,
+  brain: <><path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v.7A4.5 4.5 0 0 0 3 9.5c0 1.2.5 2.4 1.3 3.2A4.5 4.5 0 0 0 4 15.5a4.5 4.5 0 0 0 4.5 4.5h1" /><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v.7A4.5 4.5 0 0 1 21 9.5c0 1.2-.5 2.4-1.3 3.2A4.5 4.5 0 0 1 20 15.5a4.5 4.5 0 0 1-4.5 4.5h-1" /><path d="M12 4v16M8 8h3M13 8h3M7 13h4M13 13h4" /></>,
+  waveform: <><path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4" /></>,
+  gitMerge: <><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 9v12M6 12a9 9 0 0 0 9 6" /></>,
+  shieldCheck: <><path d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6l8-3.5Z" /><path d="m9 12 2 2 4-4" /></>,
+  shieldAlert: <><path d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6l8-3.5Z" /><path d="M12 8v4M12 16h.01" /></>,
 };
 
 export function Icon({ name, size = 18, className = "", strokeWidth = 1.6 }: { name: IconName; size?: number; className?: string; strokeWidth?: number }) {

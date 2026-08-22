@@ -6,6 +6,8 @@ import AppShell from "./app/AppShell";
 import Landing from "./landing/Landing";
 import Dashboard from "./views/Dashboard";
 import Threats from "./views/Threats";
+import NovelThreats from "./views/NovelThreats";
+import TrafficAnomaly from "./views/TrafficAnomaly";
 import Incidents from "./views/Incidents";
 import Events from "./views/Events";
 import Infrastructure from "./views/Infrastructure";
@@ -46,6 +48,8 @@ function Console() {
   const { view } = useStore();
   switch (view) {
     case "threats": return <Threats />;
+    case "novel_threats": return <NovelThreats />;
+    case "traffic_anomalies": return <TrafficAnomaly />;
     case "incidents": return <Incidents />;
     case "events": return <Events />;
     case "infrastructure": return <Infrastructure />;

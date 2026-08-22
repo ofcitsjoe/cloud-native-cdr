@@ -4,6 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "node server/index.js",
+    "cli": "node scripts/cli-test.js",
+    "attack": "node scripts/simulate-attack.js",
     "build": "vite build",
     "typecheck": "tsc --noEmit"
   },

@@ -4,14 +4,29 @@ import {
   ALERTS, INCIDENTS, RULES, RESPONSE_LOG_SEED, RECOMMENDED_ACTIONS,
   Alert, Incident, RuleDef,
 } from "./data/securityData";
+import {
+  NOVEL_ATTACK_CHAINS, NovelAttackChain,
+  FLOW_ANOMALIES, FlowAnomaly,
+  WORKLOAD_FLOW_PROFILES, WorkloadFlowProfile
+} from "./data/mlData";
 
-export type View = "overview" | "threats" | "incidents" | "infrastructure" | "attackpath" | "events" | "response" | "rules";
+export type View =
+  | "overview"
+  | "threats"
+  | "novel_threats"
+  | "traffic_anomalies"
+  | "incidents"
+  | "infrastructure"
+  | "attackpath"
+  | "events"
+  | "response"
+  | "rules";
 
 export interface ToastMsg { id: number; msg: string; kind: "ok" | "warn" | "crit" | "info" }
 
 export interface LogEntry { id: string; ts: number; action: string; target: string; status: "EXECUTED" | "QUEUED"; by: string }
 
-interface Focus { threatId?: string; incidentId?: string }
+interface Focus { threatId?: string; incidentId?: string; novelId?: string; workloadId?: string }
 
 interface Store {
   view: View;
@@ -22,6 +37,11 @@ interface Store {
   incidents: Incident[];
   updateIncident: (id: string, patch: Partial<Incident>) => void;
   addNote: (id: string, author: string, text: string) => void;
+  novelChains: NovelAttackChain[];
+  updateNovelChain: (id: string, patch: Partial<NovelAttackChain>) => void;
+  flowAnomalies: FlowAnomaly[];
+  quarantineFlow: (id: string) => void;
+  workloadProfiles: WorkloadFlowProfile[];
   rules: RuleDef[];
   toggleRule: (id: string) => void;
   saveRule: (r: RuleDef) => void;
@@ -52,6 +72,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [focus, setFocus] = useState<Focus>({});
   const [alerts, setAlerts] = useState<Alert[]>(ALERTS);
   const [incidents, setIncidents] = useState<Incident[]>(INCIDENTS);
+  const [novelChains, setNovelChains] = useState<NovelAttackChain[]>(NOVEL_ATTACK_CHAINS);
+  const [flowAnomalies, setFlowAnomalies] = useState<FlowAnomaly[]>(FLOW_ANOMALIES);
+  const [workloadProfiles, setWorkloadProfiles] = useState<WorkloadFlowProfile[]>(WORKLOAD_FLOW_PROFILES);
   const [rules, setRules] = useState<RuleDef[]>(RULES);
   const [executed, setExecuted] = useState<string[]>([]);
   const [log, setLog] = useState<LogEntry[]>(RESPONSE_LOG_SEED);
@@ -61,13 +84,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [apiConnected, setApiConnected] = useState(false);
   const [dataSource, setDataSource] = useState<DataSource>("simulated");
   const idRef = useRef(1);
+  const knownAlertIdsRef = useRef<Set<string>>(new Set(ALERTS.map((a) => a.id)));
 
   const dismissToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
 
   const toast = useCallback((msg: string, kind: ToastMsg["kind"] = "ok") => {
     const id = idRef.current++;
     setToasts((t) => [...t.slice(-3), { id, msg, kind }]);
-    window.setTimeout(() => dismissToast(id), 4600);
+    window.setTimeout(() => dismissToast(id), 5200);
   }, [dismissToast]);
 
   const go = useCallback((v: View, f?: Focus) => {
@@ -76,23 +100,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0 });
   }, []);
 
-  // Live mode: if a backend is reachable (VITE_API_URL), prefer persisted
-  // PostgreSQL data; otherwise keep the simulated dataset. Demo build never breaks.
+  // Sync state and poll live backend every 2.5 seconds
   useEffect(() => {
     let cancelled = false;
-    connectApi().then((data) => {
-      if (cancelled || !data) return;
-      setApiConnected(true);
-      setDataSource(data.source);
-      if (data.alerts?.length) setAlerts(data.alerts);
-      if (data.incidents?.length) setIncidents(data.incidents);
-      if (data.rules?.length) setRules(data.rules);
-      const label =
-        data.source === "cdr" ? "Live — Sentinel-X detection engine (FastAPI)" :
-        data.source === "postgres" ? "Live — PostgreSQL" : "Simulated";
-      toast(`${label} · serving live data`, "ok");
-    });
-    return () => { cancelled = true; };
+
+    const poll = async () => {
+      try {
+        const data = await connectApi();
+        if (cancelled || !data) return;
+
+        setApiConnected(true);
+        setDataSource(data.source);
+
+        if (data.alerts?.length) {
+          // Check for newly arriving alerts from terminal simulations
+          const newAlerts = data.alerts.filter((a) => !knownAlertIdsRef.current.has(a.id));
+          if (newAlerts.length > 0) {
+            newAlerts.forEach((a) => {
+              knownAlertIdsRef.current.add(a.id);
+              toast(`🚨 ATTACK DETECTED: ${a.name} (${a.resource})`, "crit");
+            });
+          }
+          setAlerts(data.alerts);
+        }
+
+        if (data.incidents?.length) setIncidents(data.incidents);
+        if (data.rules?.length) setRules(data.rules);
+      } catch {
+        // quiet fallback
+      }
+    };
+
+    poll();
+    const interval = window.setInterval(poll, 2500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [toast]);
 
   const updateAlert = useCallback((id: string, patch: Partial<Alert>) => {
@@ -106,6 +151,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addNote = useCallback((id: string, author: string, text: string) => {
     setIncidents((a) => a.map((x) => (x.id === id ? { ...x, notes: [...x.notes, { ts: Date.now(), author, text }] } : x)));
   }, []);
+
+  const updateNovelChain = useCallback((id: string, patch: Partial<NovelAttackChain>) => {
+    setNovelChains((chains) => chains.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  }, []);
+
+  const quarantineFlow = useCallback((id: string) => {
+    setFlowAnomalies((flows) =>
+      flows.map((f) => (f.id === id ? { ...f, status: "QUARANTINED" } : f))
+    );
+    toast(`Flow ${id} quarantined — NetworkPolicy applied`, "ok");
+  }, [toast]);
 
   const toggleRule = useCallback((id: string) => {
     setRules((r) => {
@@ -135,7 +191,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setLog((l) => [{ id: `log-${Date.now()}`, ts: Date.now(), action: def.label, target: def.target, status: "EXECUTED", by }, ...l]);
 
     if (apiConnected) {
-      // Persist to the append-only audit log server-side (fire-and-forget).
       void persistAction({
         actionId: id, label: def.label, target: def.target, risk: def.risk,
         incidentId: def.incidentId, confirmed: true,
@@ -151,7 +206,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toast(`${def.label} executed on ${def.target}`, def.risk === "dangerous" ? "warn" : "ok");
     if (def.risk === "safe") return;
 
-    // containment side-effects: close the incident and its active alerts
+    // containment side-effects
     setIncidents((inc) =>
       inc.map((x) => {
         if (x.id !== def.incidentId) return x;
@@ -168,6 +223,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     view, focus, go,
     alerts, updateAlert,
     incidents, updateIncident, addNote,
+    novelChains, updateNovelChain,
+    flowAnomalies, quarantineFlow,
+    workloadProfiles,
     rules, toggleRule, saveRule,
     executed, executeAction, log,
     toasts, toast, dismissToast,

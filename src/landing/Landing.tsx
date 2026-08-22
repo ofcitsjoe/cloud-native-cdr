@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Icon, Wordmark } from "../components/icons";
 import { Btn, CountUp, Reveal, SectionKicker, SevDot } from "../components/ui";
 import { ALERTS, HERO_STATS, RESOURCES, SEV_META, Severity } from "../data/securityData";
+import { NOVEL_ATTACK_CHAINS, WORKLOAD_FLOW_PROFILES } from "../data/mlData";
 import type { View } from "../store";
 
 const IMG_DC = "https://image.qwenlm.ai/generated-images/339cd69a-dac9-4168-9537-f2c23180b485/_result.png";
@@ -30,7 +31,7 @@ function HeroVisual() {
     <div className="relative panel rounded-md overflow-hidden gridbg-fine">
       <div className="scanline" />
       <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-        <span className="lbl">Live topology · us-east-1</span>
+        <span className="lbl">Live topology · ML baseline active</span>
         <span className="lbl flex items-center gap-2 text-crit"><span className="w-1.5 h-1.5 rounded-full bg-crit blink-rec" />Rec · simulated</span>
       </div>
       <svg viewBox="0 0 560 330" className="w-full h-auto block">
@@ -89,7 +90,7 @@ function HeroVisual() {
 /* =============================== sections =============================== */
 
 function TickerStrip() {
-  const items = ["Impossible travel", "TOR exit egress", "Secrets enumeration", "Privilege escalation", "Crypto-mining", "Brute force", "Data exfiltration", "Lateral movement", "IAM abuse", "Anomalous egress", "K8s exec abuse", "Credential stuffing"];
+  const items = ["Zero-day TTP synthesis", "3-Sigma flow baselines", "Impossible travel", "TOR exit egress", "Secrets enumeration", "Privilege escalation", "Crypto-mining", "C2 beaconing jitter", "Data exfiltration", "Lateral movement", "IAM abuse", "Shannon entropy outliers"];
   const row = items.map((t) => (
     <span key={t} className="inline-flex items-center gap-6 mx-6 font-mono text-[11px] uppercase tracking-[0.2em] text-dim whitespace-nowrap">
       {t} <span className="text-sig/60">//</span>
@@ -105,9 +106,9 @@ function TickerStrip() {
 function StatementPipeline() {
   const stages = [
     { k: "Telemetry", v: "1.9M ev/day" },
-    { k: "Detection", v: "214 rules" },
+    { k: "ML Baselines", v: "3-sigma dynamic" },
+    { k: "TTP Synthesis", v: "novel vector mapping" },
     { k: "Investigation", v: "auto-correlated" },
-    { k: "Decision", v: "confidence-scored" },
     { k: "Response", v: "34s median" },
   ];
   return (
@@ -229,8 +230,8 @@ function LoopVisual({ stage }: { stage: number }) {
 function SecurityLoop() {
   const stages = [
     { n: "01", t: "Collect", d: "Cloud events, identity activity, network telemetry and workload behavior — normalized into one investigation surface." },
-    { n: "02", t: "Detect", d: "Rules, behavioral baselines and threat intelligence identify suspicious behavior with a calibrated confidence score." },
-    { n: "03", t: "Investigate", d: "Related events are correlated into incidents and attack paths, so analysts see the campaign — not the noise." },
+    { n: "02", t: "Detect", d: "Rules, statistical flow baselines and MITRE TTP correlation engines identify suspicious behavior with calibrated confidence." },
+    { n: "03", t: "Investigate", d: "Related events are correlated into incidents, attack paths and novel zero-day mutation graphs." },
     { n: "04", t: "Respond", d: "Recommended or automated containment actions stop threats in seconds, with a full audit trail." },
   ];
   return (
@@ -394,6 +395,57 @@ function VisualDetection() {
           <span className="font-mono text-[9.5px] uppercase tracking-[0.12em]" style={{ color: SEV_META[a.severity].hex }}>{a.severity}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function VisualNovelAttacks() {
+  const chain = NOVEL_ATTACK_CHAINS[0];
+  return (
+    <div className="panel rounded-md p-5 gridbg-fine space-y-4">
+      <div className="flex justify-between items-center border-b border-edge pb-3">
+        <span className="lbl">AI Sequence Vectorizer</span>
+        <span className="lbl text-high font-bold">Novelty 94/100 · 96% Conf</span>
+      </div>
+      <div className="text-[13.5px] text-ink font-semibold">{chain.name}</div>
+      <div className="space-y-2 font-mono text-[11px]">
+        {chain.ttpSequence.slice(0, 3).map((s, i) => (
+          <div key={s.techniqueId} className="flex items-center gap-2.5 p-2 rounded-sm border border-edge bg-panel2/60">
+            <span className="text-sig">0{i + 1}</span>
+            <span className="text-ink font-medium">{s.techniqueId}</span>
+            <span className="text-dim truncate">{s.techniqueName}</span>
+            {s.isNovelMutation && <span className="text-[9px] text-crit border border-crit/40 px-1 py-0.5 rounded-sm ml-auto">Mutation</span>}
+          </div>
+        ))}
+      </div>
+      <div className="lbl text-sig text-[10px]">Auto-synthesized Sigma rule ready</div>
+    </div>
+  );
+}
+
+function VisualTrafficBaseline() {
+  const prof = WORKLOAD_FLOW_PROFILES[0];
+  return (
+    <div className="panel rounded-md p-5 gridbg-fine space-y-3">
+      <div className="flex justify-between items-center border-b border-edge pb-3">
+        <span className="lbl">Flow Baseline · 3-Sigma Model</span>
+        <span className="lbl text-crit font-bold">+8.4σ Outlier Breach</span>
+      </div>
+      <div className="text-[13.5px] text-ink font-semibold">{prof.workloadName}</div>
+      <svg viewBox="0 0 380 120" className="w-full h-auto">
+        <polygon points="20,70 100,68 180,64 260,66 320,62 360,65 360,95 320,95 260,98 180,94 100,98 20,98" fill="#2FD6B5" fillOpacity="0.1" stroke="#2FD6B5" strokeOpacity="0.3" strokeDasharray="3 3" />
+        <polyline points="20,82 100,80 180,78 260,80 320,78 360,80" fill="none" stroke="#2FD6B5" strokeWidth="1.2" strokeDasharray="3 3" />
+        <polyline points="20,81 100,82 180,79 260,78 300,32 320,24 340,30 360,26" fill="none" stroke="#E9EEF2" strokeWidth="1.8" />
+        <circle cx="320" cy="24" r="5" fill="#FF5D55" />
+        <circle cx="320" cy="24" r="10" fill="none" stroke="#FF5D55" strokeWidth="1.2" opacity="0.6">
+          <animate attributeName="r" values="5;11;5" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <text x="320" y="14" textAnchor="middle" fontSize="9" fill="#FF5D55" fontFamily="IBM Plex Mono">Egress Spike 48.2 Mbps</text>
+      </svg>
+      <div className="flex justify-between text-[11px] font-mono text-dim pt-2 border-t border-edge">
+        <span>C2 Beaconing: <span className="text-crit font-semibold">45s interval</span></span>
+        <span>Shannon Entropy: <span className="text-ink">7.6</span></span>
+      </div>
     </div>
   );
 }
@@ -577,6 +629,7 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
           <Wordmark />
           <nav className="hidden md:flex items-center gap-7 font-mono text-[11px] uppercase tracking-[0.18em] text-mut">
             <a href="#method" className="hover:text-sig transition-colors">Method</a>
+            <a href="#ai-engines" className="hover:text-sig transition-colors">AI Engines</a>
             <a href="#infrastructure" className="hover:text-sig transition-colors">Visibility</a>
             <a href="#platform" className="hover:text-sig transition-colors">Platform</a>
             <a href="#evidence" className="hover:text-sig transition-colors">Evidence</a>
@@ -605,21 +658,21 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
             </Reveal>
             <Reveal delay={180}>
               <p className="text-mut text-[16px] md:text-lg leading-relaxed max-w-xl mt-8">
-                SENTINEL-X continuously monitors cloud workloads, identifies anomalous behavior and contains
-                threats before they spread — from first telemetry to verified decision in seconds.
+                SENTINEL-X continuously monitors cloud workloads, identifies unobserved zero-day mutations using known MITRE techniques, detects 3-sigma traffic anomalies, and contains threats before they spread.
               </p>
             </Reveal>
             <Reveal delay={260}>
               <div className="flex flex-wrap items-center gap-4 mt-10">
                 <Btn variant="solid" onClick={() => onEnter("threats")}>Explore threats <Icon name="arrowRight" size={13} /></Btn>
-                <Btn variant="line" onClick={() => document.getElementById("method")?.scrollIntoView({ behavior: "smooth" })}>View architecture</Btn>
+                <Btn variant="line" onClick={() => onEnter("novel_threats")}>AI Novel Attacks</Btn>
+                <Btn variant="line" onClick={() => onEnter("traffic_anomalies")}>Traffic Baselines</Btn>
               </div>
             </Reveal>
             <Reveal delay={330}>
               <div className="flex flex-wrap gap-x-8 gap-y-2 mt-12 font-mono text-[11px] text-dim">
                 <span>AWS · Azure · GCP</span>
                 <span>18,421 workloads</span>
-                <span>simulated telemetry</span>
+                <span>3-sigma ML baselines</span>
                 <span className="text-sig">score 71 / 100</span>
               </div>
             </Reveal>
@@ -632,9 +685,51 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
       <StatementPipeline />
       <Numbers />
       <SecurityLoop />
+
+      {/* AI & ML Dedicated Section */}
+      <section id="ai-engines" className="max-w-6xl mx-auto px-6 py-20 border-t border-edge">
+        <Reveal>
+          <SectionKicker>// Machine Learning &amp; AI Intelligence</SectionKicker>
+          <h2 className="font-disp font-bold text-3xl md:text-5xl leading-[1.08] max-w-3xl tracking-tight">
+            Novel attack synthesis &amp; statistical flow baselining.
+          </h2>
+          <p className="text-mut text-[15px] max-w-2xl mt-4 leading-relaxed">
+            Standard signature rules fail when adversaries recombine known techniques in unfamiliar ways. SENTINEL-X uses dual ML models to catch zero-day permutations and subtle traffic volume anomalies.
+          </p>
+        </Reveal>
+
+        <div className="mt-4">
+          <FeatureRow
+            kicker="// Zero-Day &amp; Novel Threat Detection"
+            title="Identify new attacks using known MITRE techniques."
+            copy="Our Sequence Vectorizer maps multi-stage actions across identity, compute and storage. Even when no single step breaches a threshold, the composite sequence is recognized and assigned a calibrated Novelty Mutation Score."
+            points={[
+              "Correlates cross-tactic permutations (Initial Access → Micro-sessions → Distributed S3)",
+              "Auto-synthesizes tuned Sigma & YARA-L rules for immediate SIEM export",
+              "Predictive blast radius estimation before data leaves the VPC boundary"
+            ]}
+            visual={<VisualNovelAttacks />}
+            onDemo={() => onEnter("novel_threats")}
+          />
+
+          <FeatureRow flip
+            kicker="// Behavioral Traffic Baselines"
+            title="Analyze normal traffic flow to catch suspicious bursts."
+            copy="Computes dynamic 24-hour moving baselines (μ) with 3-sigma confidence bands per workload. Automatically distinguishes benign day-night fluctuations from C2 beaconing jitter, Shannon entropy spikes and unclassified ASN egress."
+            points={[
+              "Dynamic 3-sigma upper and lower confidence thresholds",
+              "FFT-based autocorrelation for periodic C2 beaconing with jitter",
+              "Real-time Shannon entropy and JA3 TLS fingerprint tracking"
+            ]}
+            visual={<VisualTrafficBaseline />}
+            onDemo={() => onEnter("traffic_anomalies")}
+          />
+        </div>
+      </section>
+
       <InfraSection />
 
-      {/* feature deep-dives */}
+      {/* platform capabilities */}
       <section id="platform" className="max-w-6xl mx-auto px-6 pt-24">
         <Reveal>
           <SectionKicker>// Platform</SectionKicker>
@@ -676,8 +771,8 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
           <FeatureRow
             kicker="// AI security analyst"
             title="Ask the environment what happened."
-            copy="An analyst assistant grounded in the same telemetry you see — it explains why an alert fired, ranks what matters and drafts the response plan. Simulated data is labeled as such."
-            points={["Answers cite the exact alerts, events and resources", "Distinguishes fact, inference and recommendation", "One click from question to containment action"]}
+            copy="An analyst assistant grounded in the same telemetry you see — it explains why an alert fired, ranks what matters and drafts executable remediation code. Simulated data is labeled as such."
+            points={["Answers cite the exact alerts, events and resources", "Distinguishes fact, inference and recommendation", "Generates copyable kubectl, AWS CLI and Terraform playbooks"]}
             visual={<VisualAnalyst />}
             onDemo={() => onEnter("overview")}
           />
@@ -720,6 +815,7 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
           <div className="flex gap-12 font-mono text-[11px] uppercase tracking-[0.16em] text-mut">
             <div className="space-y-3">
               <div className="lbl">Product</div>
+              <a href="#ai-engines" className="block hover:text-sig transition-colors">AI &amp; ML</a>
               <a href="#platform" className="block hover:text-sig transition-colors">Platform</a>
               <a href="#method" className="block hover:text-sig transition-colors">Method</a>
               <a href="#evidence" className="block hover:text-sig transition-colors">Evidence</a>
@@ -727,6 +823,8 @@ export default function Landing({ onEnter }: { onEnter: (v?: View) => void }) {
             <div className="space-y-3">
               <div className="lbl">Console</div>
               <button onClick={() => onEnter("overview")} className="block hover:text-sig transition-colors">Overview</button>
+              <button onClick={() => onEnter("novel_threats")} className="block hover:text-sig transition-colors">AI Novel Threats</button>
+              <button onClick={() => onEnter("traffic_anomalies")} className="block hover:text-sig transition-colors">Traffic Baselines</button>
               <button onClick={() => onEnter("threats")} className="block hover:text-sig transition-colors">Threats</button>
               <button onClick={() => onEnter("response")} className="block hover:text-sig transition-colors">Response</button>
             </div>

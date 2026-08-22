@@ -1,11 +1,10 @@
 /* SENTINEL-X · detection engine (server-side rule evaluation)
  *
  * Evaluates threshold rules directly against the events table.
- * In production, schedule this via cron / a queue consumer, and move
- * statistical baselines (3σ egress, invocation bursts) into the same
- * pattern with a precomputed baseline table.
  */
-async function runDetections(pool) {
+export async function runDetections(pool) {
+  if (!pool) return { evaluated: 0, created: [], ts: new Date().toISOString() };
+
   const created = [];
 
   // NET-BRUTEFORCE-SSH-01 — >10 failed SSH auths from one IP in 5 minutes
@@ -47,5 +46,3 @@ async function runDetections(pool) {
 
   return { evaluated: 2, created, ts: new Date().toISOString() };
 }
-
-module.exports = { runDetections };

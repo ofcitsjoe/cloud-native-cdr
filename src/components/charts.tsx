@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SEV_META, Severity } from "../data/securityData";
+import { TrafficFlowPoint } from "../data/mlData";
 
 /* ------------------------------- gauge -------------------------------- */
 
@@ -33,6 +34,147 @@ export function Gauge({ value, size = 190, label }: { value: number; size?: numb
         <span className="font-disp font-bold leading-none" style={{ fontSize: size * 0.24, color }}>{Math.round(drawn)}</span>
         <span className="lbl mt-2">{label ?? "Security score"}</span>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------ novelty mutation gauge ----------------------- */
+
+export function NoveltyMutationGauge({ score, confidence, size = 160 }: { score: number; confidence: number; size?: number }) {
+  const r = size / 2 - 12;
+  const c = 2 * Math.PI * r;
+  const sweep = 0.75;
+  const off = c * sweep * (1 - score / 100);
+  const color = score >= 90 ? "#FF5D55" : score >= 75 ? "#FF9838" : "#2FD6B5";
+
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-[225deg]">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#1c2630" strokeWidth="6" strokeDasharray={`${c * sweep} ${c}`} strokeLinecap="round" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="6" strokeDasharray={`${c * sweep} ${c}`} strokeDashoffset={off} strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease" }} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className="font-disp font-bold leading-none" style={{ fontSize: size * 0.22, color }}>{score}</span>
+        <span className="lbl mt-1">Novelty index</span>
+        <span className="font-mono text-[9px] text-dim mt-0.5">{confidence}% AI confidence</span>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------ baseline flow chart -------------------------- */
+
+export function BaselineFlowChart({ points, height = 240 }: { points: TrafficFlowPoint[]; height?: number }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const W = 720;
+  const H = height;
+  const padL = 36, padR = 12, padT = 16, padB = 28;
+
+  const maxVal = Math.max(
+    ...points.map((p) => Math.max(p.actualThroughputMbps, p.baselineUpper3SigmaMbps))
+  ) * 1.18;
+
+  const x = (i: number) => padL + (i / (points.length - 1)) * (W - padL - padR);
+  const y = (v: number) => padT + (1 - Math.max(0, v) / maxVal) * (H - padT - padB);
+
+  // Upper/lower bounds polygon (Confidence band)
+  const upperLine = points.map((p, i) => `${x(i)},${y(p.baselineUpper3SigmaMbps)}`).join(" ");
+  const lowerLineRev = [...points]
+    .reverse()
+    .map((p, i) => `${x(points.length - 1 - i)},${y(p.baselineLower3SigmaMbps)}`)
+    .join(" ");
+  const bandPolygon = `${upperLine} ${lowerLineRev}`;
+
+  // Normal mean line
+  const meanLine = points.map((p, i) => `${x(i)},${y(p.baselineMeanMbps)}`).join(" ");
+
+  // Actual throughput line
+  const actualLine = points.map((p, i) => `${x(i)},${y(p.actualThroughputMbps)}`).join(" ");
+
+  const hovered = hoveredIdx !== null ? points[hoveredIdx] : null;
+
+  return (
+    <div className="relative">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block select-none">
+        {/* Horizontal grid lines */}
+        {[0.25, 0.5, 0.75, 1.0].map((f) => {
+          const val = maxVal * f;
+          return (
+            <g key={f}>
+              <line x1={padL} x2={W - padR} y1={y(val)} y2={y(val)} stroke="#1c2630" strokeWidth="1" strokeDasharray="2 4" />
+              <text x={padL - 6} y={y(val) + 3} textAnchor="end" fontSize="8.5" fill="#5d6c79" fontFamily="IBM Plex Mono">
+                {val.toFixed(1)}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* 3-Sigma Confidence Band */}
+        <polygon points={bandPolygon} fill="#2FD6B5" fillOpacity="0.08" stroke="#2FD6B5" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
+
+        {/* Baseline Mean Line */}
+        <polyline points={meanLine} fill="none" stroke="#2FD6B5" strokeWidth="1.3" strokeDasharray="4 4" strokeOpacity="0.6" />
+
+        {/* Observed Actual Throughput */}
+        <polyline points={actualLine} fill="none" stroke="#E9EEF2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Render Points & Anomalies */}
+        {points.map((p, i) => {
+          const px = x(i);
+          const py = y(p.actualThroughputMbps);
+          const isSelected = hoveredIdx === i;
+
+          return (
+            <g key={p.ts} onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)} className="cursor-pointer">
+              {p.isAnomaly ? (
+                <g>
+                  <circle cx={px} cy={py} r={isSelected ? 7 : 5} fill="#FF5D55" />
+                  <circle cx={px} cy={py} r={isSelected ? 14 : 10} fill="none" stroke="#FF5D55" strokeWidth="1.2" opacity="0.6">
+                    <animate attributeName="r" values="6;13;6" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="stroke-opacity" values="0.8;0.1;0.8" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                </g>
+              ) : (
+                <circle cx={px} cy={py} r={isSelected ? 4 : 2} fill={isSelected ? "#2FD6B5" : "#8FA0AE"} />
+              )}
+            </g>
+          );
+        })}
+
+        {/* Time axis labels */}
+        {points.map((p, i) => (
+          i % 4 === 0 ? (
+            <text key={p.ts} x={x(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="#5d6c79" fontFamily="IBM Plex Mono">
+              {p.timeLabel}
+            </text>
+          ) : null
+        ))}
+      </svg>
+
+      {/* Floating Hover Tooltip */}
+      {hovered && (
+        <div className="absolute top-2 right-2 border border-edge2 bg-panel2/95 backdrop-blur-md rounded-sm p-3 font-mono text-[11px] shadow-lg pointer-events-none anim-fade-up">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-ink font-semibold">{hovered.timeLabel} Telemetry</span>
+            {hovered.isAnomaly ? (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-crit/20 text-crit border border-crit/40 uppercase tracking-[0.1em]">
+                {hovered.anomalyType || "Anomalous"}
+              </span>
+            ) : (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-sig/20 text-sig border border-sig/40 uppercase tracking-[0.1em]">
+                Normal
+              </span>
+            )}
+          </div>
+          <div className="space-y-1 text-dim">
+            <div>Observed Throughput: <span className={hovered.isAnomaly ? "text-crit font-bold" : "text-ink"}>{hovered.actualThroughputMbps} Mbps</span></div>
+            <div>Baseline Mean (μ): <span className="text-sig">{hovered.baselineMeanMbps} Mbps</span></div>
+            <div>Upper 3σ Bound: <span className="text-high">{hovered.baselineUpper3SigmaMbps} Mbps</span></div>
+            <div>Packet Rate: <span className="text-ink">{hovered.packetRatePps.toLocaleString()} pps</span></div>
+            <div>Shannon Entropy: <span className="text-ink">{hovered.entropyScore}</span></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

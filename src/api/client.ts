@@ -7,18 +7,16 @@
  *        GET /api/v1/incidents  →  { incidents: CdrIncident[] }
  *        GET /api/v1/rules      →  { rules: CdrRule[] }
  *
- *   2. The bundled Express + PostgreSQL API
- *        VITE_API_URL           (login + /api/bootstrap)
+ *   2. The bundled Express + PostgreSQL / Standalone ML API
+ *        VITE_API_URL           (login + /api/bootstrap + /api/ml/*)
  *
  *   3. Falls back to the simulated dataset — the demo never breaks.
- *
- * The FastAPI shapes are normalized into the console's richer internal
- * model (Alert / Incident / RuleDef) so every view lights up on live data.
  */
 import { Alert, Incident, IncidentStatus, ResourceItem, RuleDef, Severity, NOW } from "../data/securityData";
+import { MLEvaluationResult, NovelAttackChain, TrafficFlowPoint } from "../data/mlData";
 
 const CDR_BASE: string = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_CDR_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
-const BASE: string = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL ?? "").replace(/\/$/, "");
+const BASE: string = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
 const TOKEN_KEY = "sentinelx_token";
 
 export type DataSource = "cdr" | "postgres" | "simulated";
@@ -29,7 +27,7 @@ function token(): string | null {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 }
 
-async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 2500, base: string = BASE): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 3000, base: string = BASE): Promise<T> {
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -176,16 +174,15 @@ async function connectCdr(): Promise<Bootstrap | null> {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Bundled Express + PostgreSQL API                                   */
+/*  Bundled Express + PostgreSQL / Standalone API                      */
 /* ------------------------------------------------------------------ */
 
-/** Demo-mode convenience login. Returns null when no backend is reachable. */
 export async function connectApi(): Promise<Bootstrap | null> {
   // 1. Team FastAPI engine
   const cdr = await connectCdr();
   if (cdr) return cdr;
 
-  // 2. Express + PostgreSQL
+  // 2. Express API
   if (apiEnabled()) {
     try {
       const { token: jwt } = await request<{ token: string }>("/api/auth/login", {
@@ -219,6 +216,54 @@ export async function runDetectionPass(): Promise<{ created: string[] } | null> 
   if (!apiEnabled() || !token()) return null;
   try {
     return await request("/api/detect/run", { method: "POST" }, 5000);
+  } catch {
+    return null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Machine Learning & AI Endpoints                                   */
+/* ------------------------------------------------------------------ */
+
+export async function analyzeNovelSequenceApi(actions: string[]): Promise<MLEvaluationResult | null> {
+  try {
+    return await request<MLEvaluationResult>("/api/ml/novel-attacks/analyze", {
+      method: "POST",
+      body: JSON.stringify({ actions }),
+    }, 4000);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchTrafficBaselineApi(workload: string): Promise<{ points: TrafficFlowPoint[] } | null> {
+  try {
+    return await request<{ points: TrafficFlowPoint[] }>(`/api/ml/traffic-baseline?workload=${encodeURIComponent(workload)}`, {}, 3000);
+  } catch {
+    return null;
+  }
+}
+
+export interface CopilotResponse {
+  query: string;
+  timestamp: string;
+  fact: string;
+  inference: string;
+  recommendation: string;
+  blastRadius: string;
+  remediationPlaybook?: {
+    kubectl: string;
+    awsCli: string;
+    terraform: string;
+  };
+}
+
+export async function queryAiCopilotApi(query: string, context?: Record<string, unknown>): Promise<CopilotResponse | null> {
+  try {
+    return await request<CopilotResponse>("/api/ai/copilot", {
+      method: "POST",
+      body: JSON.stringify({ query, context }),
+    }, 5000);
   } catch {
     return null;
   }

@@ -3,25 +3,32 @@ import { Icon, IconName, Wordmark } from "../components/icons";
 import { useNow } from "../components/ui";
 import { View, useStore } from "../store";
 
-const NAV: { section: string; items: { id: View; label: string; icon: IconName }[] }[] = [
+const NAV: { section: string; items: { id: View; label: string; icon: IconName; countKey?: "threats" | "novel" | "anomalies" }[] }[] = [
   {
     section: "Operations",
     items: [
       { id: "overview", label: "Overview", icon: "grid" },
-      { id: "threats", label: "Threats", icon: "radar" },
+      { id: "threats", label: "Threats", icon: "radar", countKey: "threats" },
       { id: "incidents", label: "Incidents", icon: "siren" },
       { id: "events", label: "Events", icon: "list" },
     ],
   },
   {
-    section: "Context",
+    section: "AI & Behavioral ML",
+    items: [
+      { id: "novel_threats", label: "Novel AI Threats", icon: "brain", countKey: "novel" },
+      { id: "traffic_anomalies", label: "Traffic Anomalies", icon: "waveform", countKey: "anomalies" },
+    ],
+  },
+  {
+    section: "Context & Graph",
     items: [
       { id: "infrastructure", label: "Infrastructure", icon: "server" },
       { id: "attackpath", label: "Attack paths", icon: "route" },
     ],
   },
   {
-    section: "Actions",
+    section: "Automations",
     items: [
       { id: "response", label: "Response", icon: "zap" },
       { id: "rules", label: "Rules", icon: "terminal" },
@@ -32,6 +39,8 @@ const NAV: { section: string; items: { id: View; label: string; icon: IconName }
 const VIEW_META: Record<View, { title: string; desc: string }> = {
   overview: { title: "Security overview", desc: "Posture, active threats and operational tempo across all connected clouds." },
   threats: { title: "Threat detection", desc: "Every detection with rule, confidence, evidence and recommended action." },
+  novel_threats: { title: "Novel attack & zero-day engine", desc: "AI-driven identification of composite attacks using known MITRE TTP permutations." },
+  traffic_anomalies: { title: "Traffic flow baseline & anomaly center", desc: "Statistical 3-sigma outlier detection, C2 beaconing analysis and flow telemetry." },
   incidents: { title: "Incident investigation", desc: "Correlated campaigns with timeline, blast radius and response plan." },
   events: { title: "Event explorer", desc: "Raw, filterable security telemetry — the evidence behind every finding." },
   infrastructure: { title: "Cloud inventory", desc: "Every workload, identity and data store, scored and searchable." },
@@ -41,11 +50,14 @@ const VIEW_META: Record<View, { title: string; desc: string }> = {
 };
 
 export default function AppShell({ children, onExit }: { children: React.ReactNode; onExit: () => void }) {
-  const { view, go, setQuery, setAnalystOpen, alerts, incidents, apiConnected, dataSource } = useStore();
+  const { view, go, setQuery, setAnalystOpen, alerts, incidents, novelChains, flowAnomalies, apiConnected, dataSource } = useStore();
   const [q, setQ] = useState("");
   const now = useNow(1000);
   const meta = VIEW_META[view];
+
   const activeCount = alerts.filter((a) => a.status === "ACTIVE").length + incidents.filter((i) => i.status === "OPEN").length;
+  const activeNovel = novelChains.filter((c) => c.status === "ACTIVE").length;
+  const activeAnomalies = flowAnomalies.filter((f) => f.status === "ACTIVE").length;
 
   const submitSearch = () => {
     setQuery(q);
@@ -61,23 +73,32 @@ export default function AppShell({ children, onExit }: { children: React.ReactNo
         </div>
         <nav className="flex-1 overflow-y-auto py-5 px-3">
           {NAV.map((g) => (
-            <div key={g.section} className="mb-6">
+            <div key={g.section} className="mb-5">
               <div className="lbl px-3 mb-2">{g.section}</div>
-              {g.items.map((it) => (
-                <button
-                  key={it.id}
-                  onClick={() => go(it.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-[13px] transition-all duration-150 mb-0.5 ${
-                    view === it.id ? "bg-sig/10 text-sig border-l-2 border-sig" : "text-mut hover:text-ink hover:bg-panel2 border-l-2 border-transparent"
-                  }`}
-                >
-                  <Icon name={it.icon} size={16} />
-                  <span className="font-medium">{it.label}</span>
-                  {it.id === "threats" && activeCount > 0 && (
-                    <span className="ml-auto font-mono text-[10px] px-1.5 py-0.5 rounded-sm bg-crit/15 text-crit border border-crit/30">{activeCount}</span>
-                  )}
-                </button>
-              ))}
+              {g.items.map((it) => {
+                const count =
+                  it.countKey === "threats" ? activeCount :
+                  it.countKey === "novel" ? activeNovel :
+                  it.countKey === "anomalies" ? activeAnomalies : 0;
+
+                return (
+                  <button
+                    key={it.id}
+                    onClick={() => go(it.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-[13px] transition-all duration-150 mb-0.5 ${
+                      view === it.id ? "bg-sig/10 text-sig border-l-2 border-sig" : "text-mut hover:text-ink hover:bg-panel2 border-l-2 border-transparent"
+                    }`}
+                  >
+                    <Icon name={it.icon} size={16} />
+                    <span className="font-medium">{it.label}</span>
+                    {count > 0 && (
+                      <span className="ml-auto font-mono text-[10px] px-1.5 py-0.5 rounded-sm bg-crit/15 text-crit border border-crit/30">
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           ))}
         </nav>
@@ -118,7 +139,7 @@ export default function AppShell({ children, onExit }: { children: React.ReactNo
           {apiConnected ? (
             <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-sig border border-sig/30 bg-sig/8 rounded-sm px-2.5 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-sig blink-rec" />
-              {dataSource === "cdr" ? "Live · Sentinel-X Engine" : "Live · PostgreSQL"}
+              {dataSource === "cdr" ? "Live · Sentinel-X Engine" : "Live · Sentinel-X API"}
             </span>
           ) : (
             <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-med border border-med/30 bg-med/8 rounded-sm px-2.5 py-1.5">
